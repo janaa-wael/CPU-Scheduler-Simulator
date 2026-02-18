@@ -29,6 +29,7 @@ public:
     int getStartTime() const;
     int getRemainingTime() const;
     int getWaitingTime() const;
+    int getTurnAroundTime() const;
     void setName(string name);
     void setId(int id);
     void setBurstTime(int burstTime);

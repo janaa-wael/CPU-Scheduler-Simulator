@@ -46,6 +46,11 @@ int Process::getWaitingTime() const
     return waitingTime;
 }
 
+int Process::getTurnAroundTime() const
+{
+    return turnAroundTime;
+}
+
 void Process::setName(string name) 
 {
     this->name = name;
