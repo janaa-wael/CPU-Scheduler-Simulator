@@ -31,7 +31,12 @@ void FCFS_Scheduler::run(int runUntilTime = -1)
     currentProcess->setTurnAroundTime(currentProcess->getCompletionTime() - currentProcess->getArrivalTime());
     currentProcess->setIsComplete(true);
     currentProcess->setWaitingTime(currentProcess->getTurnAroundTime() - currentProcess->getBurstTime());
+    readyQueue.pop();
 
+    calculateAvgTurnAroundTime();
+    calculateAvgWaitingTime();
+    cout << "Average Waiting Time: " << currentProcess->getWaitingTime() << endl;
+    cout << "Turnaround Time: " << currentProcess->getTurnAroundTime() << endl;
 
 }
 
@@ -44,4 +49,9 @@ shared_ptr<Process> FCFS_Scheduler::selectNextProcess()
         return p;
     }
     return nullptr;
+}
+
+int main()
+{
+    
 }
