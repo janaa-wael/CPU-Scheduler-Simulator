@@ -41,6 +41,11 @@ int Process::getRemainingTime() const
     return remainingTime;
 }
 
+int Process::getWaitingTime() const
+{
+    return waitingTime;
+}
+
 void Process::setName(string name) 
 {
     this->name = name;
@@ -81,3 +86,17 @@ void Process::setRemainingTime(int remainingTime)
     this->remainingTime = remainingTime;
 }
 
+void Process::setTurnAroundTime(int turnaroundTime)
+{
+    this->turnAroundTime = turnaroundTime;
+}
+
+void Process::setIsComplete(bool status)
+{
+    this->isComplete = true;
+}
+
+void Process::setWaitingTime(int waitingTime)
+{
+    this->waitingTime = waitingTime;
+}

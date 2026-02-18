@@ -13,8 +13,13 @@ private:
     int completionTime;
     int startTime;
     int remainingTime;
+    int turnAroundTime;
+    int waitingTime;
+    bool isComplete = false;
 
 public:
+    Process();
+    Process(string name, int it, int burstTime, int priority);
     string getName() const;
     int getId() const;
     int getBurstTime() const;
@@ -23,6 +28,7 @@ public:
     int getCompletionTime() const;
     int getStartTime() const;
     int getRemainingTime() const;
+    int getWaitingTime() const;
     void setName(string name);
     void setId(int id);
     void setBurstTime(int burstTime);
@@ -31,4 +37,7 @@ public:
     void setCompletionTime(int completionTime);
     void setStartTime(int startTime);
     void setRemainingTime(int remainingTime);
+    void setTurnAroundTime(int turnaroundTime);
+    void setIsComplete(bool status);
+    void setWaitingTime(int waitingTime);
 };
