@@ -30,6 +30,7 @@ public:
     int getRemainingTime() const;
     int getWaitingTime() const;
     int getTurnAroundTime() const;
+    bool getIsComplete() const;
     float getProgress() const;
     void setName(string name);
     void setId(int id);

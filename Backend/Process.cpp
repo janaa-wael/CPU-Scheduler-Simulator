@@ -60,6 +60,12 @@ int Process::getTurnAroundTime() const
     return turnAroundTime;
 }
 
+bool Process::getIsComplete() const
+{
+    return isComplete;
+}
+
+
 void Process::setName(string name) 
 {
     this->name = name;

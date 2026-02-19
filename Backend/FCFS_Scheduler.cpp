@@ -5,7 +5,6 @@
 
 using namespace std;
 
-int ticks=0;
 
 FCFS_Scheduler::FCFS_Scheduler(bool isPreemptive) 
 : Scheduler(FirstArrivalComparator(), isPreemptive, "First-Come-First-Served Scheduler")
@@ -13,31 +12,42 @@ FCFS_Scheduler::FCFS_Scheduler(bool isPreemptive)
 
 }
 
-void FCFS_Scheduler::run(int runUntilTime = -1)
+void FCFS_Scheduler::runStatic(int runUntilTime = -1)
 {
-    while(readyQueue.empty()) ticks++;
+    // This is the same as the current run method
+    bool isLiveMode = (runUntilTime < 0);
 
-    auto currentProcess = readyQueue.top();
-    readyQueue.pop();
-    currentProcess->setArrivalTime(ticks);
+    while ((isLiveMode || timeCounter < runUntilTime)) {
+        updateReadyQueue();
 
-    while(currentProcess->getRemainingTime() != 0)
-    {
-        currentProcess->setRemainingTime(currentProcess->getRemainingTime() - 1);
-        ticks++;
+        if (readyQueue.empty()) {
+            if (allProcessesComplete())
+                break;
+
+            int nextArrival = findNextArrivalTime();
+            if (nextArrival > timeCounter)
+                timeCounter = nextArrival;
+
+            continue;
+        }
+
+        auto p = selectNextProcess();
+        readyQueue.pop();
+
+        if (p->getStartTime() < 0)
+            p->setStartTime(timeCounter);
+
+        timeCounter += p->getRemainingTime();
+        p->setCompletionTime(timeCounter);
+        p->setRemainingTime(0);
+        p->setIsComplete(true);
+
+        p->setTurnAroundTime(p->getCompletionTime() - p->getArrivalTime());
+        p->setWaitingTime(p->getTurnAroundTime() - p->getBurstTime());
     }
 
-    currentProcess->setCompletionTime(ticks);
-    currentProcess->setTurnAroundTime(currentProcess->getCompletionTime() - currentProcess->getArrivalTime());
-    currentProcess->setIsComplete(true);
-    currentProcess->setWaitingTime(currentProcess->getTurnAroundTime() - currentProcess->getBurstTime());
-    readyQueue.pop();
-
-    calculateAvgTurnAroundTime();
     calculateAvgWaitingTime();
-    cout << "Average Waiting Time: " << currentProcess->getWaitingTime() << endl;
-    cout << "Turnaround Time: " << currentProcess->getTurnAroundTime() << endl;
-
+    calculateAvgTurnAroundTime();
 }
 
 shared_ptr<Process> FCFS_Scheduler::selectNextProcess()
@@ -51,7 +61,20 @@ shared_ptr<Process> FCFS_Scheduler::selectNextProcess()
     return nullptr;
 }
 
-int main()
+bool FCFS_Scheduler::allProcessesComplete() const
 {
-    
+
+}
+
+int FCFS_Scheduler::findNextArrivalTime() const
+{
+    int next_arrival = INT_MAX;
+    for(const auto& p: allProcesses)
+    {
+        if(!p->getIsComplete() && p->getArrivalTime() > timeCounter)
+        {
+            next_arrival = min(next_arrival, p->getArrivalTime());
+        }
+    }
+    return next_arrival;
 }

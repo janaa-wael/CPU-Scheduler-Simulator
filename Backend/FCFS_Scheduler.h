@@ -16,10 +16,12 @@ private:
             return p1->getArrivalTime() > p2->getArrivalTime();
         }
     };
-
+    bool allProcessesComplete() const;
+    int findNextArrivalTime() const;
 public:
     FCFS_Scheduler(bool isPreemptive);
-    void run(int runUntilTime = -1);
-    shared_ptr<Process> selectNextProcess();
+    void runStatic(int runUntilTime = -1) override;
+    bool runOneStep() override;
+    shared_ptr<Process> selectNextProcess() override;
 
 };
