@@ -21,6 +21,15 @@ int Process::getPriority() const
     return priority;
 }
 
+float Process::getProgress() const
+{
+    if(burstTime == 0) return 0.0f;
+    if(remainingTime == 0) return 100.0f;
+
+    return (static_cast<float>(burstTime-remainingTime)/burstTime) * 100.0f;
+}
+
+
 int Process::getArrivalTime() const
 {
     return arrivalTime;
