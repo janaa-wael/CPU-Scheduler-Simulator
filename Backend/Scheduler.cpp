@@ -80,3 +80,16 @@ void Scheduler::updateProcess(shared_ptr<Process> p)
     }
     updateReadyQueue();
 }
+
+shared_ptr<Process> Scheduler::getCurrentProcess() const
+{
+    return currentProcess;
+}
+
+void Scheduler::addNewProcesses(const vector<shared_ptr<Process>>& newProcesses)
+{
+    for(const auto& p : newProcesses)
+    {
+        addProcess(p);
+    }
+}

@@ -7,14 +7,16 @@
 using namespace std;
 
 class Scheduler{
-private:
+protected:
     float avgTurnAroundTime;
     float avgWaitingTime;
     bool preemptive = false;
     string name;
+    shared_ptr<Process> currentProcess = nullptr;
     function<bool(std::shared_ptr<Process>, std::shared_ptr<Process>)> processComparator;
     vector<shared_ptr<Process>> allProcesses;
-protected:
+
+    int timeCounter=0;
     priority_queue<
         shared_ptr<Process>, 
         vector<shared_ptr<Process>>, 
@@ -28,16 +30,22 @@ public:
     virtual ~Scheduler() = default;
     float getAvgTurnAroundTime() const;
     float getAvgWaitingTime() const;
+    int getCurrentTime() const;
     bool getPreemptive() const;
     const string& getName() const;
-
+    shared_ptr<Process> getCurrentProcess() const;
     virtual void addProcess(shared_ptr<Process> p);
     virtual void deleteProcess(int pid);
     virtual void updateProcess(shared_ptr<Process> p);
 
     virtual void updateReadyQueue();
-    virtual void run(int runUntilTime = -1) = 0;
+    virtual void runStatic(int runUntilTime = -1) = 0;
     virtual shared_ptr<Process> selectNextProcess() = 0;
+
+    virtual bool runOneStep();
+
+    virtual void addNewProcesses(const vector<shared_ptr<Process>>& newProcesses);
+    virtual bool isSimulationComplete() const;
 
     void calculateAvgWaitingTime();
     void calculateAvgTurnAroundTime();
