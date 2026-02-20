@@ -50,6 +50,59 @@ void FCFS_Scheduler::runStatic(int runUntilTime = -1)
     calculateAvgTurnAroundTime();
 }
 
+bool FCFS_Scheduler::runOneStep() 
+{
+    updateReadyQueue();
+
+    bool processCompleted = false;
+
+    if(currentProcess && currentProcess->getRemainingTime() <= 0)
+    {
+        currentProcess = nullptr;
+    }
+
+    if(!currentProcess)
+    {
+        if(!readyQueue.empty())
+        {
+            currentProcess = selectNextProcess();
+            readyQueue.pop();
+        }
+        if (currentProcess->getStartTime() < 0)
+            currentProcess->setStartTime(timeCounter);
+        else
+        {
+            if(isSimulationComplete())
+            {
+                return true;
+            }
+
+            timeCounter++;
+            updateReadyQueue();
+            return false;
+        }
+    }
+
+    timeCounter++;
+    int remaining = currentProcess->getRemainingTime();
+    currentProcess->setRemainingTime(remaining);
+
+    if(remaining <= 0)
+    {
+        currentProcess->setCompletionTime(timeCounter);
+        currentProcess->setIsComplete(true);
+
+        currentProcess->setTurnAroundTime(currentProcess->getCompletionTime() - currentProcess->getArrivalTime());
+        currentProcess->setWaitingTime(currentProcess->getTurnAroundTime() - currentProcess->getBurstTime());
+    }
+
+    calculateAvgTurnAroundTime();
+    calculateAvgWaitingTime();
+
+    return isSimulationComplete();
+}
+
+
 shared_ptr<Process> FCFS_Scheduler::selectNextProcess()
 {
     if(!readyQueue.empty())
