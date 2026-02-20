@@ -63,7 +63,11 @@ shared_ptr<Process> FCFS_Scheduler::selectNextProcess()
 
 bool FCFS_Scheduler::allProcessesComplete() const
 {
-
+    for(auto& p : allProcesses)
+    {
+        if(!p->getIsComplete()) return false;
+    }
+    return true;
 }
 
 int FCFS_Scheduler::findNextArrivalTime() const
