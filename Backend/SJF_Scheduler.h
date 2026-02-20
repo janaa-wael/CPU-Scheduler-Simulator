@@ -16,9 +16,13 @@ private:
             return p1->getBurstTime() > p2->getBurstTime();
         }
     };
+    bool allProcessesComplete() const;
+    int findNextArrivalTime() const;
+
 public:
     SJF_Scheduler(bool preemptive);
-    void run(int runUntilTime = -1);
+    void runStatic(int runUntilTime = -1) override;
+    bool runOneStep() override;
     shared_ptr<Process> selectNextProcess();
 
 };
