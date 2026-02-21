@@ -113,7 +113,57 @@ bool SJF_Scheduler::runOneStep()
 
 void SJF_Scheduler::runStatic(int runUntilTime = -1)
 {
+    bool isLiveMode = runUntilTime < 0;
+    shared_ptr<Process> currentProcess = nullptr;
 
+    while(isLiveMode || timeCounter < runUntilTime)
+    {
+        updateReadyQueue();
+
+        if(readyQueue.empty() && !currentProcess)
+        {
+            if(allProcessesComplete()) break;
+
+            int nextArrival = findNextArrivalTime();
+            if(nextArrival > timeCounter) timeCounter = nextArrival;
+
+            continue;
+        }
+
+        if(!currentProcess || currentProcess->getRemainingTime() == 0 || (preemptive && !readyQueue.empty() && readyQueue.top()->getRemainingTime() < currentProcess->getRemainingTime())) 
+        {
+            if(currentProcess && currentProcess->getRemainingTime() > 0)
+            {
+                readyQueue.push(currentProcess);
+            }
+            currentProcess = selectNextProcess();
+            readyQueue.pop();
+            if(currentProcess->getStartTime() < 0)
+                currentProcess->setStartTime(timeCounter);
+        }
+
+        int executionTime = preemptive ? 1 : currentProcess->getRemainingTime();
+
+        if(!isLiveMode && timeCounter + executionTime > runUntilTime)
+        {
+            executionTime = runUntilTime - timeCounter;
+        }
+        timeCounter += executionTime;
+        int remaining = currentProcess->getRemainingTime();
+        currentProcess->setRemainingTime(remaining);
+
+        if(remaining <= 0)
+        {
+            currentProcess->setCompletionTime(timeCounter);
+            currentProcess->setIsComplete(true);
+            currentProcess->setTurnAroundTime(currentProcess->getCompletionTime() - currentProcess->getArrivalTime());
+            currentProcess->setWaitingTime(currentProcess->getTurnAroundTime() - currentProcess->getBurstTime());
+            currentProcess = nullptr;
+        }
+        if(!isLiveMode && timeCounter >= runUntilTime) break;
+    }
+    calculateAvgTurnAroundTime();
+    calculateAvgWaitingTime();
 }
 
 shared_ptr<Process> SJF_Scheduler::selectNextProcess()
