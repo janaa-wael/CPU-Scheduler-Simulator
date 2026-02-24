@@ -9,7 +9,8 @@ using namespace std;
 
 class RoundRobin_Scheduler : Scheduler {
 private:
-    int quantum;
+    int quantumCounter;
+    int timeQuantum;
     queue<shared_ptr<Process>> roundRobinQueue;
     struct RR_Comparator{
         bool operator()(shared_ptr<Process> p1, shared_ptr<Process> p2)

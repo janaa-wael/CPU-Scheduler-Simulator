@@ -19,7 +19,7 @@ int RoundRobin_Scheduler::findNextArrivalTime() const
 }
 
 RoundRobin_Scheduler::RoundRobin_Scheduler(bool isPreemptive)
-: Scheduler()
+: Scheduler(RR_Comparator(), true, "Round Robin Scheduler")
 {
 
 }
@@ -32,7 +32,7 @@ void RoundRobin_Scheduler::runStatic(int runUntilTime = -1)
     std::queue<std::shared_ptr<Process>> emptyQueue;
     roundRobinQueue = emptyQueue;
     currentProcess = nullptr;
-    quantum = 0;
+    quantumCounter = 0;
 
     // Reset process states
     for (auto& p : allProcesses) {
@@ -101,10 +101,10 @@ void RoundRobin_Scheduler::runStatic(int runUntilTime = -1)
                 currentProcess->setStartTime(timeCounter);
             }
 
-            quantum = 0;
+            quantumCounter = 0;
         }
 
-        int executeTime = std::min(quantum, currentProcess->getRemainingTime());
+        int executeTime = min(quantumCounter, currentProcess->getRemainingTime());
 
         int endTime = timeCounter + executeTime;
         std::vector<std::shared_ptr<Process>> newArrivals;
@@ -149,9 +149,81 @@ void RoundRobin_Scheduler::runStatic(int runUntilTime = -1)
     
 bool RoundRobin_Scheduler::runOneStep() 
 {
+    // First, clear any completed process from being current
+    if (currentProcess && currentProcess->getRemainingTime() <= 0) {
+        currentProcess = nullptr;
+    }
 
+    // Add arriving processes to the queue
+    for (auto& p : allProcesses) {
+        if (p->getArrivalTime() == timeCounter && !p->getIsComplete()) {
+            bool inQueue = false;
+            std::queue<std::shared_ptr<Process>> temp = roundRobinQueue;
+            while (!temp.empty()) {
+                if (temp.front()->getId() == p->getId()) {
+                    inQueue = true;
+                    break;
+                }
+                temp.pop();
+            }
+            if (!inQueue) {
+                roundRobinQueue.push(p);
+            }
+        }
+    }
+
+    // Check process state changes
+    bool needNewProcess = false;
+
+    if (currentProcess) {
+        if (currentProcess->getRemainingTime() <= 0) {
+            // Process is completed - we should have cleared it above
+            needNewProcess = true;
+        } else if (quantumCounter >= timeQuantum) {
+            // Process used up its quantum
+            roundRobinQueue.push(currentProcess);
+            currentProcess = nullptr; // Clear the current process
+            needNewProcess = true;
+        }
+    } else {
+        // No current process, need a new one if available
+        needNewProcess = true;
+    }
+
+    // If we need a new process, get one from the queue
+    if (needNewProcess) {
+        if (!roundRobinQueue.empty()) {
+            currentProcess = roundRobinQueue.front();
+            roundRobinQueue.pop();
+
+            if (currentProcess->getStartTime() < 0) {
+                currentProcess->setStartTime(timeCounter);
+            }
+            quantumCounter = 0;
+        } else {
+            // No process available, check if simulation is complete
+            if (allProcessesComplete())
+                return true;
+
+            // Advance time by just 1 unit if no processes are ready
+            timeCounter++;
+
+            // Check for any processes arriving at the new time
+            for (auto& p : allProcesses) {
+                if (p->getArrivalTime() == timeCounter && !p->getIsComplete()) {
+                    roundRobinQueue.push(p);
+                }
+            }
+
+            // Calculate metrics
+            calculateAvgWaitingTime();
+            calculateAvgTurnAroundTime();
+
+            // Return but don't mark as complete - this is an idle step
+            return false;
+        }
+    }
 }
-
 shared_ptr<Process> RoundRobin_Scheduler::selectNextProcess() 
 {
     if(roundRobinQueue.empty()) return nullptr;
@@ -195,11 +267,11 @@ void RoundRobin_Scheduler::updateProcess(shared_ptr<Process>p)
 
 int RoundRobin_Scheduler::getTimeQuantum() const
 {
-    return this->quantum;
+    return this->timeQuantum;
 }
 
 void RoundRobin_Scheduler::setTimeQuantum(int quantum)
 {
-    this->quantum = quantum;
+    this->timeQuantum = quantum;
 }
 
